@@ -1,0 +1,18 @@
+# Environnement virtuel Python
+.venv/
+
+# Caches et bytecode Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# Base de données locale (donnée, pas code)
+*.db
+*.sqlite3
+
+# Secrets — ne JAMAIS versionner
+.env
+
+# Fichiers système
+.DS_Store
