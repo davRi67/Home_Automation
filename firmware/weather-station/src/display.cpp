@@ -3,7 +3,7 @@
 
 void initDisplay(U8G2& u8g2) {
     u8g2.begin();
-    u8g2.setFont(u8g2_font_6x10_tf);
+    u8g2.setFont(u8g2_font_7x13_tf);
     u8g2.setFontRefHeightExtendedText();
     u8g2.setDrawColor(1);
     u8g2.setFontPosTop();
@@ -15,10 +15,10 @@ void renderWeatherScreen(U8G2& u8g2, const WeatherReading& reading) {
 
     u8g2.firstPage();
     do {
-        u8g2.setFont(u8g2_font_6x10_tf);
+        u8g2.setFont(u8g2_font_7x13_tf);
 
         if (!reading.valid) {
-            u8g2.drawStr(0, 24, "Capteur indisponible");
+            u8g2.drawStr(0, 26, "Capteur indispo");
             return;
         }
 
@@ -28,18 +28,18 @@ void renderWeatherScreen(U8G2& u8g2, const WeatherReading& reading) {
 
         // Ligne 2 : Pression
         snprintf(buf, sizeof(buf), "P: %.1f hPa", reading.pressure);
-        u8g2.drawStr(0, 13, buf);
+        u8g2.drawStr(0, 15, buf);
 
         // Ligne 3 : Point de rosée
         snprintf(buf, sizeof(buf), "Td: %.1f C", reading.dewPoint);
-        u8g2.drawStr(0, 26, buf);
+        u8g2.drawStr(0, 30, buf);
 
         // Séparateur horizontal
-        u8g2.drawHLine(0, 40, 128);
+        u8g2.drawHLine(0, 46, 128);
 
         // Ligne 4 : titre / statut
         u8g2.setFont(u8g2_font_5x7_tf);
-        u8g2.drawStr(0, 43, "Station Meteo  v1.0");
+        u8g2.drawStr(0, 48, "Station Meteo  v1.0");
 
     } while (u8g2.nextPage());
 }
