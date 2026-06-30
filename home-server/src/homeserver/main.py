@@ -1,14 +1,20 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, HTTPException
-from .models import Device, Command
+
+from . import storage
+from .models import Command, Device  # noqa: F401  (Device utile si tu types ailleurs)
 
 
-app = FastAPI(title="Home Automation Hub")
-DEVICES: dict[str, Device] = {
-    "weather-01": Device(id="weather-01", name="BME280", type="sensor", state={"online": True}),
-    "cat_fountain-01": Device(
-        id="cat_fountain-01", name="Niveau d'eau", type="sensor", state={"online": True}
-    ),
-}
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    storage.init_db()
+    storage.seed_default_devices()
+    yield
+
+
+app = FastAPI(title="Home Automation Hub", lifespan=lifespan)
+# Plus de dict DEVICES : la base SQLite est désormais l'unique source de vérité.
 
 
 @app.get("/")
@@ -23,26 +29,27 @@ def health_check():
 
 @app.get("/devices")
 def list_devices():
-    devices = list(DEVICES.values())
-    return {"devices": devices}
+    # storage rend une list[Device] ; on garde l'enveloppe pour ne rien changer côté client.
+    return {"devices": storage.list_devices()}
 
 
 @app.get("/devices/{device_id}")
 def get_device(device_id: str):
-    device = DEVICES.get(device_id)
-    if device:
-        return {"device": device}
-    else:
+    device = storage.get_device(device_id)
+    if device is None:                       # None venu du repository = device absent
         raise HTTPException(status_code=404, detail="Device not found")
+    return {"device": device}
 
 
 @app.post("/devices/{device_id}/command")
 def add_command(device_id: str, command: Command):
-    device = DEVICES.get(device_id)
-    if not device:
+    device = storage.get_device(device_id)
+    if device is None:
         raise HTTPException(status_code=404, detail="Device not found")
-    # Process the command (implementation depends on your needs)
-    device.state["last_command"] = (
-        command.command
-    )  # Example of updating device state with the command
+
+    # On modifie le dict state EN MÉMOIRE...
+    device.state["last_command"] = command.command
+    # ...puis on PERSISTE via la couche stockage. Sans cette ligne, rien n'est écrit.
+    storage.set_state(device_id, device.state)
+
     return {"message": "Command added successfully", "command": command}
