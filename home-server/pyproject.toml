@@ -12,6 +12,7 @@ authors = [{ name = "David" }]
 dependencies = [
     "fastapi",
     "uvicorn[standard]",
+    "paho-mqtt",
 ]
 
 [project.optional-dependencies]
